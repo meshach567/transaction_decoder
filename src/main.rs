@@ -1,35 +1,7 @@
 use std::io::Read;
-use serde::Serialize;
+use transaction::{Transaction, Input, Output, Amount};
+mod transaction;
 
-#[derive(Debug, Serialize)]
-
-struct Transaction {
-    version: u32,
-    inputs: Vec<Input>,
-    outputs: Vec<Output>,
-}
-
-#[derive(Debug, Serialize)]
-struct Input {
-    txid: String,
-    output_index: u32,
-    script_sig: String,
-    sequence: u32,
-}
-
-struct Amount(u64);
-
-impl Amount {
-    pub fn to_btc(&self) -> f64 {
-        self.0 as f64 / 100_000_000.0
-    }
-}
-
-#[derive(Debug, Serialize)]
-struct Output {
-    amount: f64,
-    script_pubkey: String,
-}
 
 fn read_compact_size(transaction_bytes: &mut &[u8]) -> u64 {
     let mut compact_size = [0_u8; 1];
@@ -65,7 +37,7 @@ fn read_u32(transaction_bytes: &mut &[u8]) -> u32 {
 fn read_amount(transaction_bytes: &mut &[u8]) -> Amount {
     let mut buffer = [0; 8];
     transaction_bytes.read(&mut buffer).unwrap();
-    Amount(u64::from_le_bytes(buffer))
+    Amount::from_sat(u64::from_le_bytes(buffer))
 }
 
 fn read_txid(transaction_bytes: &mut &[u8]) -> String{
@@ -109,7 +81,7 @@ fn main() {
     let mut outputs = vec![];
 
     for _ in 0..output_count {
-        let amount = read_amount(&mut bytes_slice).to_btc();
+        let amount = read_amount(&mut bytes_slice);
         let script_pubkey = read_script(&mut bytes_slice);
 
         outputs.push(Output {
