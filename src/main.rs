@@ -54,6 +54,17 @@ fn read_script(transaction_bytes: &mut &[u8]) -> String {
     hex::encode(buffer)
 }
 
+fn hash_key_transaction(raw_transaction: &[u8]) -> [u8, 32] {
+    let mut hasher = Sha256::new();
+    hasher.update(&raw_transaction);
+    let hash1 = hasher.finalize();
+
+    let mut hasher = Sha256::new();
+    hasher.update(&hash1); 
+    let hash2 = hasher.finalize();
+
+    hash2.into(); 
+}
 fn main() {
     let transaction_hex ="01000000000101eb3ae38f27191aa5f3850dc9cad00492b88b72404f9da135698679268041c54a0100000000ffffffff02204e0000000000002251203b41daba4c9ace578369740f15e5ec880c28279ee7f51b07dca69c7061e07068f8240100000000001600147752c165ea7be772b2c0acb7f4d6047ae6f4768e0141cf5efe2d8ef13ed0af21d4f4cb82422d6252d70324f6f4576b727b7d918e521c00b51be739df2f899c49dc267c0ad280aca6dab0d2fa2b42a45182fc83e817130100000000";
     let transaction_bytes = hex::decode(transaction_hex).unwrap();
